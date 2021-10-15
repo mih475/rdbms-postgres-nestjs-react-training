@@ -32,7 +32,7 @@ class EditEmployee extends Component<RouteComponentProps,EditEmployeeI> {
     
     public componentWillMount(): void {const api_url = 'http://localhost:7000/employees/' + this.getid();
         axios.get(api_url).then(response => {
-            this.setState({employee: response.data});
+            this.setState({employee: response.data as any});
         });
     }
 

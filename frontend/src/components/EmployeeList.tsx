@@ -26,7 +26,7 @@ class EmployeeList extends Component<RouteComponentProps,EmployeeIStates & Pagin
       //Methods
       componentWillMount(): void {const api_url = 'http://localhost:7000/employees/';
         axios.get(api_url).then(response => {
-        this.setState({datarecords: response.data});
+        this.setState({datarecords: response.data as any});
         this.extractColumnNames();
         });
         document.body.removeEventListener('click', this.myHandler);
