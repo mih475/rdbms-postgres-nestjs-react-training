@@ -4,7 +4,7 @@ import { from, Observable } from "rxjs";
 import { DeleteResult, Repository, UpdateResult } from "typeorm";
 import { EmployeeEntity } from "../models/employees.entity";
 import { EmployeeInterface } from "../models/employees.interface";
-
+import { of } from "rxjs";
 @Injectable()
 export class EmployeeService {
     constructor(
@@ -16,8 +16,20 @@ export class EmployeeService {
         return from(this.employeesEntityRepository.save(employeePost));
     }
 
+    doesEmployeeExist(employeePost: EmployeeInterface): Observable<boolean>{
+        //const employee = this.employeesEntityRepository.findOne({ firstname: employeePost.firstname, lastname: employeePost.lastname })
+        if(this.employeesEntityRepository.findOne({ firstname: employeePost.firstname, lastname: employeePost.lastname })){
+            return of(true);
+        }
+        return of(false);
+    }
+
     findAll(): Observable<EmployeeInterface[]>{
         return from(this.employeesEntityRepository.find());
+    }
+
+    findByID(id: number): Observable<EmployeeInterface>{
+        return from(this.employeesEntityRepository.findOne({ id }));
     }
 
     updateEmployee(id: number, employeePost: EmployeeInterface): Observable<UpdateResult>{

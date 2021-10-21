@@ -24,7 +24,7 @@ class EmployeeList extends Component<RouteComponentProps,EmployeeIStates & Pagin
       }
     
       //Methods
-      componentWillMount(): void {const api_url = 'http://localhost:7000/employees/';
+      componentWillMount(): void {const api_url = 'http://localhost:7000/employees/data';
         axios.get(api_url).then(response => {
         this.setState({datarecords: response.data as any});
         this.extractColumnNames();
@@ -106,7 +106,7 @@ class EmployeeList extends Component<RouteComponentProps,EmployeeIStates & Pagin
                             </thead>                            
                             <tbody> 
                               {currentPosts && currentPosts.map((each_datarecord, index) =>
-                                <tr className="rowInfo" onClick={()=>this.myHandler(each_datarecord._id)}>
+                                <tr className="rowInfo" onClick={()=>this.myHandler(each_datarecord.id)}>
 
                                   {this.displayRecords(index, indexOfFirstPost)} 
 

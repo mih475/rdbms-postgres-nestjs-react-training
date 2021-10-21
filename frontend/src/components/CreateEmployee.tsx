@@ -84,7 +84,7 @@ class CreateEmployee extends Component<{},CreateEmployeeI> {
             role: this.state.role,
             email: this.state.email
           };
-          axios.post('http://localhost:7000/employees/create-employee', employeeObject)
+          axios.post('http://localhost:7000/employees/create', employeeObject)
             .then(res => {
               console.log(res.data);
               this.setState({firstname: '', lastname: '', role: '', email: ''})
@@ -100,6 +100,7 @@ class CreateEmployee extends Component<{},CreateEmployeeI> {
             })
             .catch (err => {
               if (err.response) {
+                console.log(err.response.data);
                 alert(err.response.data);
                 window.location.href = 'http://localhost:3000/create-employee'
               } else if (err.request) {

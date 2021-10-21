@@ -30,7 +30,8 @@ class EditEmployee extends Component<RouteComponentProps,EditEmployeeI> {
         }
     }
     
-    public componentWillMount(): void {const api_url = 'http://localhost:7000/employees/' + this.getid();
+    public componentWillMount(): void {const api_url = 'http://localhost:7000/employees/data/' + this.getid();
+        console.log(api_url);
         axios.get(api_url).then(response => {
             this.setState({employee: response.data as any});
         });
@@ -109,8 +110,10 @@ class EditEmployee extends Component<RouteComponentProps,EditEmployeeI> {
             var url = window.location.href;
             var location = url.lastIndexOf('/');
             var result = url.substring(location + 1);
+            var result_int: number = +result;
+            console.log(result);
 
-            axios.put('http://localhost:7000/employees/edit-employee/'+ result, employeeObject)
+            axios.put('http://localhost:7000/employees/update/'+ result_int, employeeObject)
             .then((res) => {
                 console.log(res.data)
                 alert('Employee successfully updated');
@@ -128,7 +131,7 @@ class EditEmployee extends Component<RouteComponentProps,EditEmployeeI> {
     } 
     
     deleteEmployee(id: any) {
-        axios.delete('http://localhost:7000/employees/delete-employee/' + id)
+        axios.delete('http://localhost:7000/employees/delete/' + id)
             .then((res) => {
                 alert('Employee successfully deleted!')
                 window.location.href = 'http://localhost:3000/employee-list';
@@ -143,6 +146,7 @@ class EditEmployee extends Component<RouteComponentProps,EditEmployeeI> {
         this.state.employee.role.length > 0 && this.state.employee.email.length > 0;
     
         let singleEmployee = this.state.employee;
+        console.log(singleEmployee);
 
         return (
         <div className="form-wrapper">
