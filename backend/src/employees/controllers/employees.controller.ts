@@ -1,13 +1,12 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Post, Put, UsePipes } from "@nestjs/common";
-import { registerSchema } from "class-validator";
-import e from "cors";
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Post, Put, UsePipes, ArgumentsHost, NotFoundException, Res, UseFilters, Catch, ConflictException } from "@nestjs/common";
 import { catchError, from, map, Observable, tap } from "rxjs";
 import { DeleteResult, UpdateResult } from "typeorm";
 import { EmployeeInterface } from "../models/employees.interface";
 import { EmployeeValidationDTO } from "../models/employees.validation.dto";
 import { EmployeeService } from "../services/employees.service";
 import { CustomValidationPipe } from "../services/employees.validation.service";
-
+import { HttpExceptionFilter } from "../models/employees.exceptionFilter";
+import { Response } from "express";
 @Controller('employees')
 
 export class EmployeeController {
@@ -15,18 +14,9 @@ export class EmployeeController {
     
     @Post('create')
     @UsePipes(new CustomValidationPipe())
-    createEmployee(@Body() post: EmployeeValidationDTO): Observable<EmployeeInterface>{
-        try {
-            if(this.employeeService.doesEmployeeExist(post)){
-                var message: string;
-                message = "This employee already exists in database."
-                throw new HttpException(message, HttpStatus.FORBIDDEN);
-            }
-            return from(this.employeeService.createEmployee(post))
-        } catch (error) {
-            throw new BadRequestException(error.detail);
-        }
-        
+    @UseFilters(new HttpExceptionFilter())
+    async createEmployee(@Body() post: EmployeeValidationDTO){        
+        return await this.employeeService.createEmployee(post);      
     }
 
     @Get('data')
@@ -49,9 +39,18 @@ export class EmployeeController {
         return from(this.employeeService.updateEmployee(id, post))
     }
 
+    // This function is to delete data permanently
+    // @Delete('delete/:id')
+    // @UsePipes(new CustomValidationPipe())
+    // deleteEmployee(@Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })) id: number): Observable<DeleteResult>{
+    //     return from(this.employeeService.deleteEmployee(id))
+    // }
+
+    // This function is to soft delete data
     @Delete('delete/:id')
     @UsePipes(new CustomValidationPipe())
-    deleteEmployee(@Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })) id: number): Observable<DeleteResult>{
-        return from(this.employeeService.deleteEmployee(id))
+    async softDeleteEmployee(@Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })) id: number){
+        return await(this.employeeService.softDeleteEmployee(id))
     }
+
 }

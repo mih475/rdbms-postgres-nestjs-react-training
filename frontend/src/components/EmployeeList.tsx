@@ -41,7 +41,8 @@ class EmployeeList extends Component<RouteComponentProps,EmployeeIStates & Pagin
 
       private extractColumnNames() {
         const firstrecord = _.keys(this.state.datarecords[0]);
-        var location = firstrecord.indexOf("__v");
+        var location = firstrecord.indexOf("deletedAt");
+        
         delete firstrecord[location];
         this.setState({datacolumns: firstrecord,});
       }

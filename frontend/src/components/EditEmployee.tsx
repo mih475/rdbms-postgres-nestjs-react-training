@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import Form from 'react-bootstrap/Form';
 import { Button } from 'react-bootstrap';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { ChangeEvent } from 'react';
 import { RouteComponentProps } from 'react-router';
 import { EditEmployeeI } from './EditEmployeeInterface';
@@ -114,17 +114,22 @@ class EditEmployee extends Component<RouteComponentProps,EditEmployeeI> {
             console.log(result);
 
             axios.put('http://localhost:7000/employees/update/'+ result_int, employeeObject)
-            .then((res) => {
-                console.log(res.data)
-                alert('Employee successfully updated');
-                window.location.href = 'http://localhost:3000/employee-list';
+            .then((res : AxiosResponse<any> ) => {
+                if(res.data.response === undefined){
+                    console.log(res.data)
+                    alert('Employee successfully updated');
+                    window.location.href = 'http://localhost:3000/employee-list';
+                }
+                else{
+                    console.log(res.data.message);
+                    alert(res.data.message);
+                    window.location.href = 'http://localhost:3000/edit-employee/' + result
+                }
+                
             }).catch((error) => {
                 if (error.response) {
                     alert(error.response.data);
                     window.location.href = 'http://localhost:3000/edit-employee/' + result
-                } else if (error.request) {
-                    
-                } else {
                 }
             })
     

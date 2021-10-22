@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, ExceptionFilter, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { from, Observable } from "rxjs";
-import { DeleteResult, Repository, UpdateResult } from "typeorm";
+import { catchError, from, Observable } from "rxjs";
+import { DeleteResult, Entity, Repository, UpdateResult } from "typeorm";
 import { EmployeeEntity } from "../models/employees.entity";
 import { EmployeeInterface } from "../models/employees.interface";
 import { of } from "rxjs";
@@ -12,31 +12,87 @@ export class EmployeeService {
         private readonly employeesEntityRepository: Repository<EmployeeEntity>
     ) {}
 
-    createEmployee(employeePost: EmployeeInterface): Observable<EmployeeInterface>{
-        return from(this.employeesEntityRepository.save(employeePost));
-    }
-
-    doesEmployeeExist(employeePost: EmployeeInterface): Observable<boolean>{
-        //const employee = this.employeesEntityRepository.findOne({ firstname: employeePost.firstname, lastname: employeePost.lastname })
-        if(this.employeesEntityRepository.findOne({ firstname: employeePost.firstname, lastname: employeePost.lastname })){
-            return of(true);
+    async createEmployee(employeePost: EmployeeInterface){
+        try {
+            if( await this.employeesEntityRepository.findOne({ 
+                where: {firstname: employeePost.firstname, lastname: employeePost.lastname},
+                withDeleted: true 
+            })){
+                throw new ConflictException(`Employee already exists!`)
+            }
+            else if( await this.employeesEntityRepository.findOne({ 
+                where: {email: employeePost.email},
+                withDeleted: true
+            })){
+                throw new ConflictException(`This email has already been taken!`)
+            }
+            else{
+                return await this.employeesEntityRepository.save(employeePost);
+            }
+        } catch (error) {
+            return error;
         }
-        return of(false);
     }
 
     findAll(): Observable<EmployeeInterface[]>{
-        return from(this.employeesEntityRepository.find());
+        return from(this.employeesEntityRepository.find({ order: { id: 'ASC'}}));
     }
 
     findByID(id: number): Observable<EmployeeInterface>{
         return from(this.employeesEntityRepository.findOne({ id }));
     }
 
-    updateEmployee(id: number, employeePost: EmployeeInterface): Observable<UpdateResult>{
-        return from(this.employeesEntityRepository.update(id, employeePost));
+    async updateEmployee(id: number, employeePost: EmployeeInterface) {
+        try {
+            const empExistwFirstnLastName = await this.employeesEntityRepository.findOne({ 
+                where: {firstname: employeePost.firstname, lastname: employeePost.lastname},
+                withDeleted: true
+            });
+            const id_dupl_emp_name = this.employeesEntityRepository.getId(empExistwFirstnLastName);
+            const empExistwEmail = await this.employeesEntityRepository.findOne({ 
+                where: {email: employeePost.email},
+                withDeleted: true 
+            });
+            const id_dupl_emp_email = this.employeesEntityRepository.getId(empExistwEmail);
+
+            if((!id_dupl_emp_name) && (!id_dupl_emp_email)){
+                return this.employeesEntityRepository.update(id, employeePost);
+            }
+            else if(id === id_dupl_emp_name && (!id_dupl_emp_email)){
+                return this.employeesEntityRepository.update(id, employeePost);
+            }
+            else if((!id_dupl_emp_name) && id === id_dupl_emp_email){
+                return this.employeesEntityRepository.update(id, employeePost);
+            }
+            else if(id === id_dupl_emp_name && id === id_dupl_emp_email){
+                return this.employeesEntityRepository.update(id, employeePost);
+            }
+            else if((!id_dupl_emp_name) && id !== id_dupl_emp_email){
+                throw new ConflictException(`Can't put other employee's email`)
+            }
+            else if(id === id_dupl_emp_name && id !== id_dupl_emp_email){
+                throw new ConflictException(`Can't put other employee's email`)
+            }
+            else if(id !== id_dupl_emp_name && (!id_dupl_emp_email)){
+                throw new ConflictException(`Can't put other employee's first and last name`)
+            }
+            else if(id !== id_dupl_emp_name && id === id_dupl_emp_email){
+                throw new ConflictException(`Can't put other employee's first and last name`)
+            }
+            else{
+                throw new ConflictException(`Can't put other employee's information`)
+            }
+        } catch (error) {
+            return error;
+        }
     }
 
     deleteEmployee(id: number): Observable<DeleteResult>{
         return from(this.employeesEntityRepository.delete(id));
+    }
+
+    softDeleteEmployee(id: number): Observable<DeleteResult>{
+        this.employeesEntityRepository.softDelete({ id });
+        return;
     }
 }

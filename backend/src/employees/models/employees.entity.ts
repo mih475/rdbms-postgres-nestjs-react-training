@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Exclude } from "class-transformer";
+import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity('employees_model')
@@ -17,4 +18,7 @@ export class EmployeeEntity{
 
     @Column({ default: '' })
     email: string;
+
+    @DeleteDateColumn()
+    deletedAt: Date;
 }

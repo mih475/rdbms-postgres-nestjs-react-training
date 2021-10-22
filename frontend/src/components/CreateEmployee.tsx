@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ChangeEvent } from 'react';
 import Form from 'react-bootstrap/Form';
 import { Button } from 'react-bootstrap';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import {CreateEmployeeI} from './CreateEmployeeInterface';
 import DropdownMenu from 'react-overlays/esm/DropdownMenu';
 class CreateEmployee extends Component<{},CreateEmployeeI> {
@@ -85,17 +85,24 @@ class CreateEmployee extends Component<{},CreateEmployeeI> {
             email: this.state.email
           };
           axios.post('http://localhost:7000/employees/create', employeeObject)
-            .then(res => {
-              console.log(res.data);
-              this.setState({firstname: '', lastname: '', role: '', email: ''})
+            .then((res : AxiosResponse<any> )=> {
+              if(res.data.response === undefined){
+                console.log(res.data);
+                this.setState({firstname: '', lastname: '', role: '', email: ''})
 
-              console.log(`Employee successfully created!`);
-              console.log(`First Name: ${this.state.firstname}`);
-              console.log(`Last Name: ${this.state.lastname}`);
-              console.log(`Role: ${this.state.role}`);
-              console.log(`Email: ${this.state.email}`);
-              alert(`Employee successfully created!`);
-              window.location.href = 'http://localhost:3000/employee-list';
+                console.log(`Employee successfully created!`);
+                console.log(`First Name: ${this.state.firstname}`);
+                console.log(`Last Name: ${this.state.lastname}`);
+                console.log(`Role: ${this.state.role}`);
+                console.log(`Email: ${this.state.email}`);
+                alert(`Employee successfully created!`);
+                window.location.href = 'http://localhost:3000/employee-list';
+              }
+              else{
+                console.log(res.data.message);
+                alert(res.data.message);
+                window.location.href = 'http://localhost:3000/create-employee'
+              }
 
             })
             .catch (err => {
@@ -103,10 +110,7 @@ class CreateEmployee extends Component<{},CreateEmployeeI> {
                 console.log(err.response.data);
                 alert(err.response.data);
                 window.location.href = 'http://localhost:3000/create-employee'
-              } else if (err.request) {
-                
-              } else {
-              }
+              } 
             })
 
         } catch (error) {
